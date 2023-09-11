@@ -1,9 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
 	"teatarScraper/pkg/genAgent"
 	model "teatarScraper/pkg/models"
 	"time"
@@ -14,6 +18,7 @@ import (
 func main() {
 	initScrape := colly.NewCollector()
 	secondScrape := initScrape.Clone()
+	var Events []model.Event
 
 	initScrape.OnRequest(func(r * colly.Request){
 		userAgent := genAgent.GenBiasAgent()
@@ -49,20 +54,33 @@ func main() {
 
 	secondScrape.OnHTML("#qodef-page-outer", func(e * colly.HTMLElement){
 		title := e.ChildText(":nth-child(1) > :nth-child(1) > :nth-child(1) > h5")
-		content := e.ChildText(":nth-child(2) > :nth-child(1) >:nth-child(1) > :nth-child(1) > :nth-child(1) > :nth-child(2)")
-		if title == "" {
-			title = "\nEmpty string bad HTML"
-
+		content := e.ChildText("#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-2192be3.elementor-section-full_width.qodef-elementor-content-grid.elementor-section-height-default.elementor-section-height-default > div > div > div > section > div > div.elementor-column.elementor-col-50.elementor-inner-column.elementor-element.elementor-element-ab57097 > div > div > div")
+		if title == "" { 
+			title = e.ChildText("h3")
 		}
 		if content == "" {
-			content = "\nEmpty string bad HTML"
+			content = e.ChildText("#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-f5c67d6.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.qodef-elementor-content-no > div")
+		}
+		if content == "" {
+			content = e.ChildText("#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-95b1ede.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.qodef-elementor-content-no > div > div > div > div > div")
 		}
 		event := model.Event{
 			Title: title,
-			Content: content,
+			Content: strings.ReplaceAll(strings.ReplaceAll(content, "\t", ""), "\n", " "),
 		}
 		fmt.Println(event)
+		Events = append(Events, event)
 	})
 
 	initScrape.Visit("https://teatarkomedija.mk/portfolio-category/репертоар")
+
+	fp, _ := filepath.Abs("")
+	file, err := os.Create(fp + "/src/json/teatar.json")
+	if err != nil {
+		log.Println("Error creating file", err)
+	}
+	defer file.Close()
+
+	writer := json.NewEncoder(file)
+	writer.Encode(Events)
 }
