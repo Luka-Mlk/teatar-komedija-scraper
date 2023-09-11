@@ -54,15 +54,19 @@ func main() {
 
 	secondScrape.OnHTML("#qodef-page-outer", func(e * colly.HTMLElement){
 		title := e.ChildText(":nth-child(1) > :nth-child(1) > :nth-child(1) > h5")
-		content := e.ChildText("#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-2192be3.elementor-section-full_width.qodef-elementor-content-grid.elementor-section-height-default.elementor-section-height-default > div > div > div > section > div > div.elementor-column.elementor-col-50.elementor-inner-column.elementor-element.elementor-element-ab57097 > div > div > div")
+		content := ""
+		contentSelectors := []string{
+			"#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-2192be3.elementor-section-full_width.qodef-elementor-content-grid.elementor-section-height-default.elementor-section-height-default > div > div > div > section > div > div.elementor-column.elementor-col-50.elementor-inner-column.elementor-element.elementor-element-ab57097 > div > div > div",
+			"#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-f5c67d6.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.qodef-elementor-content-no > div",
+			"#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-95b1ede.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.qodef-elementor-content-no > div > div > div > div > div",
+		}
+		for _, selector := range contentSelectors {
+			if content == "" {
+				content = e.ChildText(selector)
+			}
+		}
 		if title == "" { 
 			title = e.ChildText("h3")
-		}
-		if content == "" {
-			content = e.ChildText("#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-f5c67d6.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.qodef-elementor-content-no > div")
-		}
-		if content == "" {
-			content = e.ChildText("#qodef-page-content > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-95b1ede.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.qodef-elementor-content-no > div > div > div > div > div")
 		}
 		event := model.Event{
 			Title: title,
